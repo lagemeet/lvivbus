@@ -10,7 +10,9 @@
 static Window *window;
 static MenuLayer *menu_layer;
 static TextLayer *text_layer;
-static char response[256];
+static char response[128];
+static char busnum_buf[128];
+static char busroute_buf[128];
 
 static SimpleMenuLayer *s_simple_menu_layer;
 static SimpleMenuSection s_menu_sections[NUM_MENU_SECTIONS];
@@ -52,10 +54,10 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 		case 0:
 			switch (cell_index->row) {
 				case 0:
-					menu_cell_basic_draw(ctx, cell_layer, "Petliury", "172", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Petliury", "0172", NULL);
 					break;
 				case 1:
-					menu_cell_basic_draw(ctx, cell_layer, "Off", "Turn all lights off", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Svobody Avenue", "0067", NULL);
 					break;
 				case 2: 
 					menu_cell_basic_draw(ctx, cell_layer, "Weather", "Time/date/weather", NULL);
@@ -91,7 +93,7 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 			SendRequest("0172");
 			break;
 		case 1:
-			SendRequest("off");
+			SendRequest("0067");
 			break;
 		case 2:
 			SendRequest("weather");
@@ -103,7 +105,7 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 			SendRequest("rainbow");
 			break;
 		case 5:
-			SendRequest("snow");
+			SendRequest("0050");
 			break;
 	}
 }
@@ -112,27 +114,34 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
 
         // Receive response from phone to watch
-	Tuple *t = dict_read_first(iterator);
+	//Tuple *t = dict_read_first(iterator);
+  Tuple *busnum = dict_find(iterator, KEY_RESPONSE);
+  Tuple *busroute = dict_find(iterator, KEY_RESPONSE_TEXT);
   int num_a_items = 0;
-	while (t != NULL) {
+	while (busnum != NULL) {
 
-		switch(t->key) {
-			case KEY_RESPONSE:
-				snprintf(response, sizeof(response), "%s", t->value->cstring);
-				text_layer_set_text(text_layer, response);
-        s_first_menu_items[num_a_items++] = (SimpleMenuItem) {
-          .title = response,
-          .callback = menu_selectt_callback,
-        };
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "Received: %s", response);
-				break;
-      case KEY_RESPONSE_TEXT:
-      	snprintf(response, sizeof(response), "%s", t->value->cstring);
-				text_layer_set_text(text_layer, response);
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "Received: %s", response);
-				break;
+		//switch(t->key) {
+    if(busnum && busroute) {
+			//case KEY_RESPONSE:
+		  snprintf(busnum_buf, sizeof(busnum_buf), "%s", busnum->value->cstring);
+      snprintf(busroute_buf, sizeof(busroute_buf), "%s", busroute->value->cstring);
+			//text_layer_set_text(text_layer, busnum_buf);
+      s_first_menu_items[num_a_items++] = (SimpleMenuItem) {
+        .title = busnum_buf,
+        .subtitle = busroute_buf,
+        .callback = menu_selectt_callback,
+      };
+      num_a_items=num_a_items+1;
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "Received busnum: %s", busnum_buf);
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "Received busroute: %s", busroute_buf);
+		  break;
+      //case KEY_RESPONSE_TEXT:
+      //	snprintf(response, sizeof(response), "%s", t->value->cstring);
+			//	text_layer_set_text(text_layer, response);
+      // APP_LOG(APP_LOG_LEVEL_DEBUG, "Received: %s", response);
+			//	break;
 		}
-		t = dict_read_next(iterator);
+		busnum = dict_read_next(iterator);
 	}
 
   s_menu_sections[0] = (SimpleMenuSection) {
@@ -152,7 +161,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 static void window_load(Window *window) {
 	
 	Layer *window_layer = window_get_root_layer(window);
-	GRect bounds = layer_get_bounds(window_layer);
+	GRect bounds = layer_get_frame(window_layer);
 	bounds.origin.y += MENU_CELL_BASIC_HEADER_HEIGHT;
 	bounds.size.h -= MENU_CELL_BASIC_HEADER_HEIGHT;
 	menu_layer = menu_layer_create(bounds);
