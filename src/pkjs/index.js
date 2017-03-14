@@ -20,7 +20,7 @@ function getWebdata(message) {
                 function(responsetext) {
                   var json = JSON.parse(responsetext);
                   json = eval(json);
-                  for (var i=0; i<json.length; i++) {
+                  for (var i=0; i<5; i++) {
                     var bus = json[i];
                     console.log(Math.round(bus.TimeToPoint / 60) + "хв: " + bus.RouteName + " (" + bus.StartPoint + " - " + bus.EndPoint + ")" );
                     var busnum = Math.round(bus.TimeToPoint / 60) + "хв: " + bus.RouteName;
@@ -30,10 +30,11 @@ function getWebdata(message) {
 
 			              // Send response to Pebble
 			              var dictionary = { 
-                      "KEY_RESPONSE": busnum,
-                      "KEY_RESPONSE_TEXT": busroute
+                      "RESPONSE": busnum,
+                      "RESPONSE_TEXT": busroute,
+                      "RESPONSE_COUNT": i
                     };
-			              console.log("Sending web response to Pebble");
+			              console.log("Sending web response to Pebble " + i);
 			              Pebble.sendAppMessage(dictionary, function(e) {
 				              console.log("Web response sent to Pebble successfully!");
 			              },
@@ -56,7 +57,7 @@ Pebble.addEventListener('ready',
 // Listen for when an AppMessage is received
 Pebble.addEventListener('appmessage', function(e) {
 
-	var value = e.payload.KEY_REQUEST;
+	var value = e.payload.REQUEST;
 	console.log("AppMessage " + value);
 	getWebdata(value);
 });

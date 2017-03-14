@@ -6,11 +6,12 @@
     "pebble": {
         "displayName": "LvivBus",
         "enableMultiJS": true,
-        "messageKeys": {
-            "KEY_REQUEST": 0,
-            "KEY_RESPONSE": 1,
-            "KEY_RESPONSE_TEXT": 2
-        },
+        "messageKeys": [
+            "REQUEST",
+            "RESPONSE",
+            "RESPONSE_TEXT",
+            "RESPONSE_COUNT"
+        ],
         "projectType": "native",
         "resources": {
             "media": []
