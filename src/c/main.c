@@ -8,8 +8,9 @@ static MenuLayer *menu_layer;
 static TextLayer *text_layer;
 
 static char busnum_buf[32];
-static char busroute_buf[128];
+static char busroute_buf[256];
 static char count_buf[8];
+static char total_buf[8];
 
 static SimpleMenuLayer *s_simple_menu_layer;
 static SimpleMenuSection s_menu_sections[NUM_MENU_SECTIONS];
@@ -48,22 +49,22 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 		case 0:
 			switch (cell_index->row) {
 				case 0:
-					menu_cell_basic_draw(ctx, cell_layer, "Petliury", "0172", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Петлюри", "від центру", NULL);
 					break;
 				case 1:
-					menu_cell_basic_draw(ctx, cell_layer, "Svobody Avenue", "0067", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Петлюри", "до центру", NULL);
 					break;
 				case 2: 
-					menu_cell_basic_draw(ctx, cell_layer, "Weather", "Time/date/weather", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Dummy", "empty", NULL);
 					break;
 				case 3: 
-					menu_cell_basic_draw(ctx, cell_layer, "Pacman", "Pacman animation", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Dummy", "empty", NULL);
 					break;
 				case 4: 
-					menu_cell_basic_draw(ctx, cell_layer, "Rainbow", "Scrolling rainbow", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Dummy", "empty", NULL);
 					break;
 				case 5: 
-					menu_cell_basic_draw(ctx, cell_layer, "Snow", "Snow animation", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Dummy", "empty", NULL);
 					break;
 			}
 			break;
@@ -87,7 +88,7 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 			SendRequest("0172");
 			break;
 		case 1:
-			SendRequest("0067");
+			SendRequest("0173");
 			break;
 		case 2:
 			SendRequest("weather");
@@ -117,7 +118,8 @@ void DrawResults() {
   s_simple_menu_layer = simple_menu_layer_create(bounds, window, s_menu_sections, NUM_MENU_SECTIONS, NULL);
   
   layer_add_child(window_layer, simple_menu_layer_get_layer(s_simple_menu_layer));
-
+  
+  vibes_short_pulse();
   //layer_mark_dirty(simple_menu_layer_get_layer(s_simple_menu_layer));
 }
 
@@ -128,11 +130,15 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   Tuple *busnum = dict_find(iterator, MESSAGE_KEY_RESPONSE);
   Tuple *busroute = dict_find(iterator, MESSAGE_KEY_RESPONSE_TEXT);
   Tuple *count = dict_find(iterator, MESSAGE_KEY_RESPONSE_COUNT);
+  Tuple *total = dict_find(iterator, MESSAGE_KEY_TOTAL);
 
   snprintf(busnum_buf, sizeof(busnum_buf), "%s", busnum->value->cstring);
   snprintf(busroute_buf, sizeof(busroute_buf), "%s", busroute->value->cstring);
   snprintf(count_buf, sizeof(count_buf), "%d", (int)count->value->int32);
+  snprintf(total_buf, sizeof(total_buf), "%d", (int)total->value->int32);
 
+  int total_num = atoi(total_buf);
+  
   int counter = atoi(count_buf);
   char *busnum_temp = malloc(sizeof(busnum_buf));
   strcpy(busnum_temp, busnum_buf);
@@ -145,10 +151,10 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     .callback = s_select_callback,
   };
 
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Received busnum: %s with iterator: %d", busnum_temp, counter);
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Received busroute: %s", busroute_temp);
+  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Received busnum: %s with iterator: %d", busnum_temp, counter);
+  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Received busroute: %s", busroute_temp);
   
-  if (counter == NUM_FIRST_MENU_ITEMS-1){
+  if (counter == total_num-1){
     DrawResults();
     free(busnum_temp);
     free(busroute_temp);
@@ -187,13 +193,14 @@ static void window_load(Window *window) {
 static void window_unload(Window *window) {
 
 	menu_layer_destroy(menu_layer);
+  simple_menu_layer_destroy(s_simple_menu_layer);
 }
 
 static void init(void) {
 	
 	window = window_create();
 	app_message_register_inbox_received(inbox_received_callback);
-	app_message_open(app_message_inbox_size_maximum()/4, app_message_outbox_size_maximum()/4);
+	app_message_open(app_message_inbox_size_maximum()/2, app_message_outbox_size_maximum()/4);
 	window_set_window_handlers(window, (WindowHandlers) {
 		.load = window_load,
 		.unload = window_unload,

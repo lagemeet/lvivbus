@@ -20,7 +20,7 @@ function getWebdata(message) {
                 function(responsetext) {
                   var json = JSON.parse(responsetext);
                   json = eval(json);
-                  for (var i=0; i<7; i++) {
+                  for (var i=0; i<Math.min(json.length, 7); i++) {
                     var bus = json[i];
                     console.log(Math.round(bus.TimeToPoint / 60) + "хв: " + bus.RouteName + " (" + bus.StartPoint + " - " + bus.EndPoint + ")" );
                     var busnum = Math.round(bus.TimeToPoint / 60) + "хв: " + bus.RouteName;
@@ -32,7 +32,8 @@ function getWebdata(message) {
 			              var dictionary = { 
                       "RESPONSE": busnum,
                       "RESPONSE_TEXT": busroute,
-                      "RESPONSE_COUNT": i
+                      "RESPONSE_COUNT": i,
+                      "TOTAL": Math.min(json.length, 7)
                     };
 			              console.log("Sending web response to Pebble " + i);
 			              Pebble.sendAppMessage(dictionary, function(e) {

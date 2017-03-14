@@ -10,7 +10,8 @@
             "REQUEST",
             "RESPONSE",
             "RESPONSE_TEXT",
-            "RESPONSE_COUNT"
+            "RESPONSE_COUNT",
+            "TOTAL"
         ],
         "projectType": "native",
         "resources": {
