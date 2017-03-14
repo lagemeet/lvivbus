@@ -1,7 +1,7 @@
 #include <pebble.h>
 
 #define NUM_MENU_SECTIONS 1
-#define NUM_FIRST_MENU_ITEMS 5
+#define NUM_FIRST_MENU_ITEMS 7
 
 static Window *window;
 static MenuLayer *menu_layer;
@@ -104,6 +104,22 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 	}
 }
 
+void DrawResults() {
+
+  s_menu_sections[0] = (SimpleMenuSection) {
+    .num_items = NUM_FIRST_MENU_ITEMS,
+    .items = s_menu_items,
+  };
+  
+  Layer *window_layer = window_get_root_layer(window);
+  GRect bounds = layer_get_frame(window_layer);
+
+  s_simple_menu_layer = simple_menu_layer_create(bounds, window, s_menu_sections, NUM_MENU_SECTIONS, NULL);
+  
+  layer_add_child(window_layer, simple_menu_layer_get_layer(s_simple_menu_layer));
+
+  //layer_mark_dirty(simple_menu_layer_get_layer(s_simple_menu_layer));
+}
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
 
@@ -122,31 +138,20 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   strcpy(busnum_temp, busnum_buf);
   char *busroute_temp = malloc(sizeof(busroute_buf));
   strcpy(busroute_temp, busroute_buf);
-  //s_menu_items[counter].title = copyOfMessage;
+  
   s_menu_items[counter] = (SimpleMenuItem) {
     .title = busnum_temp,
     .subtitle = busroute_temp,
     .callback = s_select_callback,
   };
 
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Received busnum: %s with iterator: %d", busnum_buf, counter);
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "menu0: %s ", s_menu_items[0].title);
-
-  s_menu_sections[0] = (SimpleMenuSection) {
-    .num_items = NUM_FIRST_MENU_ITEMS,
-    .items = s_menu_items,
-  };
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Received busnum: %s with iterator: %d", busnum_temp, counter);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Received busroute: %s", busroute_temp);
   
-  Layer *window_layer = window_get_root_layer(window);
-  GRect bounds = layer_get_frame(window_layer);
-
-  s_simple_menu_layer = simple_menu_layer_create(bounds, window, s_menu_sections, NUM_MENU_SECTIONS, NULL);
-
-  if (counter == 0){
-    layer_add_child(window_layer, simple_menu_layer_get_layer(s_simple_menu_layer));
-  }
-  else {
-    layer_mark_dirty(simple_menu_layer_get_layer(s_simple_menu_layer));
+  if (counter == NUM_FIRST_MENU_ITEMS-1){
+    DrawResults();
+    free(busnum_temp);
+    free(busroute_temp);
   }
 }
 

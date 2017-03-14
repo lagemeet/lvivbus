@@ -20,7 +20,7 @@ function getWebdata(message) {
                 function(responsetext) {
                   var json = JSON.parse(responsetext);
                   json = eval(json);
-                  for (var i=0; i<5; i++) {
+                  for (var i=0; i<7; i++) {
                     var bus = json[i];
                     console.log(Math.round(bus.TimeToPoint / 60) + "хв: " + bus.RouteName + " (" + bus.StartPoint + " - " + bus.EndPoint + ")" );
                     var busnum = Math.round(bus.TimeToPoint / 60) + "хв: " + bus.RouteName;
