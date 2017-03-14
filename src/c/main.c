@@ -105,10 +105,10 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 	}
 }
 
-void DrawResults() {
+void DrawResults(int total) {
 
   s_menu_sections[0] = (SimpleMenuSection) {
-    .num_items = NUM_FIRST_MENU_ITEMS,
+    .num_items = total,
     .items = s_menu_items,
   };
   
@@ -155,7 +155,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   //APP_LOG(APP_LOG_LEVEL_DEBUG, "Received busroute: %s", busroute_temp);
   
   if (counter == total_num-1){
-    DrawResults();
+    DrawResults(total_num);
     free(busnum_temp);
     free(busroute_temp);
   }
