@@ -236,7 +236,7 @@ static void init(void) {
 }
 
 static void deinit(void) {
-	
+	window_destroy(s_window);
 	window_destroy(window);
 }
 
