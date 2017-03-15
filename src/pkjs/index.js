@@ -12,7 +12,8 @@ var xhrRequest = function (url, type, callback) {
 function getWebdata(message) {
 
         // Construct URL
-        var url = "http://82.207.107.126:13541/SimpleRIDE/LAD/SM.WebApi/api/stops/?code=" + message;
+        //var url = "http://82.207.107.126:13541/SimpleRIDE/LAD/SM.WebApi/api/stops/?code=" + message;
+        var url = "https://lad.lviv.ua/api/stops/" + message;
 
         // Send web request
 	console.log(url);
@@ -20,12 +21,12 @@ function getWebdata(message) {
                 function(responsetext) {
                   var json = JSON.parse(responsetext);
                   json = eval(json);
-                  for (var i=0; i<Math.min(json.length, 7); i++) {
-                    var bus = json[i];
-                    var busnum = Math.round(bus.TimeToPoint / 60) + "хв: " + bus.RouteName;
-                    //var busroute = bus.StartPoint + " - " + bus.EndPoint;
-                    var busroute = "-> " + bus.EndPoint;
-                    console.log(busnum + " (" + bus.StartPoint + " - " + bus.EndPoint + ")" );
+                  var total_items = Math.min(json.timetable.length, 7);
+                  for (var i=0; i<total_items; i++) {
+                    var bus = json.timetable[i];
+                    var busnum = bus.time_left + ": " + bus.route;
+                    var busroute = "-> " + bus.end_stop;
+                    console.log(busnum + busroute);
                   
                   
 			              // Send response to Pebble
@@ -33,7 +34,7 @@ function getWebdata(message) {
                       "RESPONSE": busnum,
                       "RESPONSE_TEXT": busroute,
                       "RESPONSE_COUNT": i,
-                      "TOTAL": Math.min(json.length, 7)
+                      "TOTAL": total_items
                     };
 			              console.log("Sending web response to Pebble " + i);
 			              Pebble.sendAppMessage(dictionary, function(e) {

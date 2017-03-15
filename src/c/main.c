@@ -85,7 +85,7 @@ static void SendRequest(char *data) {
 static void busstop_select_callback(struct NumberWindow *number_window, void *context) {
 	int busstop_num = number_window_get_value(number_window);
   char busstop_num_temp[8];
-  snprintf(busstop_num_temp, sizeof(busstop_num_temp), "%04d", busstop_num);
+  snprintf(busstop_num_temp, sizeof(busstop_num_temp), "%d", busstop_num);
 	window_stack_pop(true);
   SendRequest(busstop_num_temp);
 }
@@ -96,13 +96,13 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
   text_layer_set_text(text_layer, "Loading...");
 	switch (cell_index->row) {
 		case 0:
-			SendRequest("0172");
+			SendRequest("172");
 			break;
 		case 1:
-			SendRequest("0173");
+			SendRequest("173");
 			break;
 		case 2:
-      SendRequest("0050");
+      SendRequest("50");
       break;
 		case 3:
 			SendRequest("pacman");
