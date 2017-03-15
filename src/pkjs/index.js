@@ -22,12 +22,12 @@ function getWebdata(message) {
                   json = eval(json);
                   for (var i=0; i<Math.min(json.length, 7); i++) {
                     var bus = json[i];
-                    console.log(Math.round(bus.TimeToPoint / 60) + "хв: " + bus.RouteName + " (" + bus.StartPoint + " - " + bus.EndPoint + ")" );
                     var busnum = Math.round(bus.TimeToPoint / 60) + "хв: " + bus.RouteName;
-                    var busroute = bus.StartPoint + " - " + bus.EndPoint;
+                    //var busroute = bus.StartPoint + " - " + bus.EndPoint;
+                    var busroute = "-> " + bus.EndPoint;
+                    console.log(busnum + " (" + bus.StartPoint + " - " + bus.EndPoint + ")" );
                   
-                  //console.log("Webdata: " + responsetext);
-
+                  
 			              // Send response to Pebble
 			              var dictionary = { 
                       "RESPONSE": busnum,

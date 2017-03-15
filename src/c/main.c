@@ -49,10 +49,10 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 		case 0:
 			switch (cell_index->row) {
 				case 0:
-					menu_cell_basic_draw(ctx, cell_layer, "Петлюри", "від центру", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Петлюри", "0172 від центру", NULL);
 					break;
 				case 1:
-					menu_cell_basic_draw(ctx, cell_layer, "Петлюри", "до центру", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Петлюри", "0173 до центру", NULL);
 					break;
 				case 2: 
 					menu_cell_basic_draw(ctx, cell_layer, "Dummy", "empty", NULL);
@@ -83,6 +83,7 @@ static void SendRequest(char *data) {
 static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	
         // Menu selection
+  text_layer_set_text(text_layer, "Loading...");
 	switch (cell_index->row) {
 		case 0:
 			SendRequest("0172");
@@ -156,7 +157,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   
   if (counter == total_num-1){
     DrawResults(total_num);
-    free(busnum_temp);
+    //free(busnum_temp);
     free(busroute_temp);
   }
 }
