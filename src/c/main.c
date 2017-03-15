@@ -16,8 +16,9 @@ static SimpleMenuLayer *s_simple_menu_layer;
 static SimpleMenuSection s_menu_sections[NUM_MENU_SECTIONS];
 static SimpleMenuItem s_menu_items[NUM_FIRST_MENU_ITEMS];
 
-static void s_select_callback(int index, void *ctx) {
-}
+static NumberWindow *number_window;
+
+static void s_select_callback(int index, void *ctx){}
 
 static uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data) {
 
@@ -64,7 +65,7 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 					menu_cell_basic_draw(ctx, cell_layer, "Dummy", "empty", NULL);
 					break;
 				case 5: 
-					menu_cell_basic_draw(ctx, cell_layer, "Dummy", "empty", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Вибрати вручну", "Зупинка за номером", NULL);
 					break;
 			}
 			break;
@@ -80,6 +81,14 @@ static void SendRequest(char *data) {
 	app_message_outbox_send();
 }
 
+static void busstop_select_callback(struct NumberWindow *number_window, void *context) {
+	int busstop_num = number_window_get_value(number_window);
+  char busstop_num_temp[8];
+  snprintf(busstop_num_temp, sizeof(busstop_num_temp), "%04d", busstop_num);
+	window_stack_pop(true);
+  SendRequest(busstop_num_temp);
+}
+
 static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	
         // Menu selection
@@ -92,8 +101,8 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 			SendRequest("0173");
 			break;
 		case 2:
-			SendRequest("weather");
-			break;
+      SendRequest("0050");
+      break;
 		case 3:
 			SendRequest("pacman");
 			break;
@@ -101,7 +110,11 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 			SendRequest("rainbow");
 			break;
 		case 5:
-			SendRequest("0050");
+      number_window = number_window_create("Bus Stop", (NumberWindowCallbacks) { .selected = busstop_select_callback }, NULL);
+    	number_window_set_min(number_window, 1);
+	    number_window_set_max(number_window, 500);
+	    number_window_set_step_size(number_window, 1);
+      window_stack_push((Window*)number_window, true);
 			break;
 	}
 }
