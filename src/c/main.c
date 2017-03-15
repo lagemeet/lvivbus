@@ -51,10 +51,10 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 		case 0:
 			switch (cell_index->row) {
 				case 0:
-					menu_cell_basic_draw(ctx, cell_layer, "Петлюри", "0172 від центру", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Петлюри", "172 від центру", NULL);
 					break;
 				case 1:
-					menu_cell_basic_draw(ctx, cell_layer, "Петлюри", "0173 до центру", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Петлюри", "173 до центру", NULL);
 					break;
 				case 2: 
 					menu_cell_basic_draw(ctx, cell_layer, "Dummy", "empty", NULL);
@@ -162,31 +162,42 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   Tuple *busroute = dict_find(iterator, MESSAGE_KEY_RESPONSE_TEXT);
   Tuple *count = dict_find(iterator, MESSAGE_KEY_RESPONSE_COUNT);
   Tuple *total = dict_find(iterator, MESSAGE_KEY_TOTAL);
+  
+  Tuple *bg_color = dict_find(iterator, MESSAGE_KEY_BackgroundColor);
+  Tuple *second_tick = dict_find(iterator, MESSAGE_KEY_SecondTick);
 
-  snprintf(busnum_buf, sizeof(busnum_buf), "%s", busnum->value->cstring);
-  snprintf(busroute_buf, sizeof(busroute_buf), "%s", busroute->value->cstring);
-  snprintf(count_buf, sizeof(count_buf), "%d", (int)count->value->int32);
-  snprintf(total_buf, sizeof(total_buf), "%d", (int)total->value->int32);
+  if (busnum && busroute && count){
+      snprintf(busnum_buf, sizeof(busnum_buf), "%s", busnum->value->cstring);
+      snprintf(busroute_buf, sizeof(busroute_buf), "%s", busroute->value->cstring);
+      snprintf(count_buf, sizeof(count_buf), "%d", (int)count->value->int32);
+      snprintf(total_buf, sizeof(total_buf), "%d", (int)total->value->int32);
 
-  int total_num = atoi(total_buf);
+      int total_num = atoi(total_buf);
   
-  int counter = atoi(count_buf);
-  char *busnum_temp = malloc(sizeof(busnum_buf));
-  strcpy(busnum_temp, busnum_buf);
-  char *busroute_temp = malloc(sizeof(busroute_buf));
-  strcpy(busroute_temp, busroute_buf);
+      int counter = atoi(count_buf);
+      char *busnum_temp = malloc(sizeof(busnum_buf));
+      strcpy(busnum_temp, busnum_buf);
+      char *busroute_temp = malloc(sizeof(busroute_buf));
+      strcpy(busroute_temp, busroute_buf);
   
-  s_menu_items[counter] = (SimpleMenuItem) {
-    .title = busnum_temp,
-    .subtitle = busroute_temp,
-    .callback = s_select_callback,
-  };
+      s_menu_items[counter] = (SimpleMenuItem) {
+        .title = busnum_temp,
+        .subtitle = busroute_temp,
+        .callback = s_select_callback,
+      };
   
-  if (counter == total_num-1){
-    DrawResults(total_num);
-    //free(busnum_temp);
-    free(busroute_temp);
+      if (counter == total_num-1){
+        DrawResults(total_num);
+        //free(busnum_temp);
+        free(busroute_temp);
+      }
   }
+  if (bg_color){
+    char bg_color_buf[32];
+    snprintf(bg_color_buf, sizeof(bg_color_buf), "%s", bg_color->value->cstring);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "BackgroundColor: %s", bg_color_buf);
+  }
+  
 }
 
 static void window_load(Window *window) {

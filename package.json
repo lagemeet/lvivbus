@@ -1,9 +1,15 @@
 {
     "author": "r.ghost.asp@gmail.com",
-    "dependencies": {},
+    "dependencies": {
+        "pebble-clay": "^1.0.3"
+    },
     "keywords": [],
     "name": "lvivbus",
     "pebble": {
+        "capabilities": [
+            "location",
+            "configurable"
+        ],
         "displayName": "LvivBus",
         "enableMultiJS": true,
         "messageKeys": [
@@ -11,7 +17,9 @@
             "RESPONSE",
             "RESPONSE_TEXT",
             "RESPONSE_COUNT",
-            "TOTAL"
+            "TOTAL",
+            "BackgroundColor",
+            "SecondTick"
         ],
         "projectType": "native",
         "resources": {
