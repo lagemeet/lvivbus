@@ -12,6 +12,7 @@ static char busroute_buf[256];
 static char count_buf[8];
 static char total_buf[8];
 
+static Window *window_result;
 static SimpleMenuLayer *s_simple_menu_layer;
 static SimpleMenuSection s_menu_sections[NUM_MENU_SECTIONS];
 static SimpleMenuItem s_menu_items[NUM_FIRST_MENU_ITEMS];
@@ -22,7 +23,7 @@ static void s_select_callback(int index, void *ctx){}
 
 static uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data) {
 
-        // One menu section
+        // Two menu sections
 	return 1;
 }
 
@@ -119,6 +120,15 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 	}
 }
 
+static void window_result_load(Window *window) {
+}
+
+static void window_result_unload(Window *window) {
+  simple_menu_layer_destroy(s_simple_menu_layer);
+  number_window_destroy(number_window);
+  text_layer_set_text(text_layer, "LvivBus");
+}
+
 void DrawResults(int total) {
 
   s_menu_sections[0] = (SimpleMenuSection) {
@@ -126,15 +136,22 @@ void DrawResults(int total) {
     .items = s_menu_items,
   };
   
-  Layer *window_layer = window_get_root_layer(window);
+  window_result = window_create();
+
+  Layer *window_layer = window_get_root_layer(window_result);
   GRect bounds = layer_get_frame(window_layer);
 
-  s_simple_menu_layer = simple_menu_layer_create(bounds, window, s_menu_sections, NUM_MENU_SECTIONS, NULL);
+  s_simple_menu_layer = simple_menu_layer_create(bounds, window_result, s_menu_sections, NUM_MENU_SECTIONS, NULL);
   
+  window_set_window_handlers(window_result, (WindowHandlers) {
+		.load = window_result_load,
+		.unload = window_result_unload,
+	});
+  
+  window_stack_push(window_result, "true");
   layer_add_child(window_layer, simple_menu_layer_get_layer(s_simple_menu_layer));
   
   vibes_short_pulse();
-  //layer_mark_dirty(simple_menu_layer_get_layer(s_simple_menu_layer));
 }
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
@@ -164,9 +181,6 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     .subtitle = busroute_temp,
     .callback = s_select_callback,
   };
-
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Received busnum: %s with iterator: %d", busnum_temp, counter);
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "Received busroute: %s", busroute_temp);
   
   if (counter == total_num-1){
     DrawResults(total_num);
@@ -205,9 +219,7 @@ static void window_load(Window *window) {
 }
 
 static void window_unload(Window *window) {
-
 	menu_layer_destroy(menu_layer);
-  simple_menu_layer_destroy(s_simple_menu_layer);
 }
 
 static void init(void) {
