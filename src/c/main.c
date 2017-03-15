@@ -12,7 +12,7 @@ static char busroute_buf[256];
 static char count_buf[8];
 static char total_buf[8];
 
-static Window *window_result;
+static Window *s_window;
 static SimpleMenuLayer *s_simple_menu_layer;
 static SimpleMenuSection s_menu_sections[NUM_MENU_SECTIONS];
 static SimpleMenuItem s_menu_items[NUM_FIRST_MENU_ITEMS];
@@ -66,7 +66,7 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 					menu_cell_basic_draw(ctx, cell_layer, "Dummy", "empty", NULL);
 					break;
 				case 5: 
-					menu_cell_basic_draw(ctx, cell_layer, "Вибрати вручну", "Зупинка за номером", NULL);
+					menu_cell_basic_draw(ctx, cell_layer, "Номер зупинки", "Вибір за номером", NULL);
 					break;
 			}
 			break;
@@ -111,7 +111,7 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 			SendRequest("rainbow");
 			break;
 		case 5:
-      number_window = number_window_create("Bus Stop", (NumberWindowCallbacks) { .selected = busstop_select_callback }, NULL);
+      number_window = number_window_create("Номер зупинки", (NumberWindowCallbacks) { .selected = busstop_select_callback }, NULL);
     	number_window_set_min(number_window, 1);
 	    number_window_set_max(number_window, 500);
 	    number_window_set_step_size(number_window, 1);
@@ -120,10 +120,10 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 	}
 }
 
-static void window_result_load(Window *window) {
+static void s_window_load(Window *window) {
 }
 
-static void window_result_unload(Window *window) {
+static void s_window_unload(Window *window) {
   simple_menu_layer_destroy(s_simple_menu_layer);
   number_window_destroy(number_window);
   text_layer_set_text(text_layer, "LvivBus");
@@ -136,19 +136,19 @@ void DrawResults(int total) {
     .items = s_menu_items,
   };
   
-  window_result = window_create();
+  s_window = window_create();
 
-  Layer *window_layer = window_get_root_layer(window_result);
+  Layer *window_layer = window_get_root_layer(s_window);
   GRect bounds = layer_get_frame(window_layer);
 
-  s_simple_menu_layer = simple_menu_layer_create(bounds, window_result, s_menu_sections, NUM_MENU_SECTIONS, NULL);
+  s_simple_menu_layer = simple_menu_layer_create(bounds, s_window, s_menu_sections, NUM_MENU_SECTIONS, NULL);
   
-  window_set_window_handlers(window_result, (WindowHandlers) {
-		.load = window_result_load,
-		.unload = window_result_unload,
+  window_set_window_handlers(s_window, (WindowHandlers) {
+		.load = s_window_load,
+		.unload = s_window_unload,
 	});
   
-  window_stack_push(window_result, "true");
+  window_stack_push(s_window, "true");
   layer_add_child(window_layer, simple_menu_layer_get_layer(s_simple_menu_layer));
   
   vibes_short_pulse();
