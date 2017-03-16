@@ -20,7 +20,7 @@ static NumberWindow *number_window;
 
 typedef struct ClaySettings {
   char stop[32];
-  char desc[32];
+  char desc[64];
   char code[8];
 } ClaySettings;
 
@@ -29,6 +29,10 @@ static ClaySettings stops[STOPS_NUMBER];
 static void load_config(){
   for (int i = 0; i < STOPS_NUMBER; i++) {
     persist_read_data(i+1, &stops[i], sizeof(ClaySettings));
+  }
+  if (strcmp(stops[0].stop, "") == 0){
+    snprintf(stops[0].stop, sizeof(stops[0].stop), "%s", "Немає зупинок");
+    snprintf(stops[0].desc, sizeof(stops[0].desc), "%s", "Потрібне налаштування");
   }
 }
 
