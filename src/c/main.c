@@ -109,6 +109,7 @@ static void busstop_select_callback(struct NumberWindow *number_window, void *co
 static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	
         // Menu selection
+  text_layer_set_text(text_layer, "Loading...");
 	switch (cell_index->row) {
 		case 0:
     case 1:
@@ -117,7 +118,6 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
     case 4:
     case 5:
     case 6:
-      text_layer_set_text(text_layer, "Loading...");
 			SendRequest(stops[cell_index->row].code);
 			break;
 		case 7:
