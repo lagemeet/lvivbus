@@ -18,8 +18,9 @@
             "RESPONSE_TEXT",
             "RESPONSE_COUNT",
             "TOTAL",
-            "BackgroundColor",
-            "SecondTick"
+            "Stop[7]",
+            "Desc[7]",
+            "Code[7]"
         ],
         "projectType": "native",
         "resources": {

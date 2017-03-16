@@ -1,7 +1,6 @@
 #include <pebble.h>
 
-#define NUM_MENU_SECTIONS 1
-#define NUM_FIRST_MENU_ITEMS 7
+#define STOPS_NUMBER 7
 
 static Window *window;
 static MenuLayer *menu_layer;
@@ -14,10 +13,30 @@ static char total_buf[8];
 
 static Window *s_window;
 static SimpleMenuLayer *s_simple_menu_layer;
-static SimpleMenuSection s_menu_sections[NUM_MENU_SECTIONS];
-static SimpleMenuItem s_menu_items[NUM_FIRST_MENU_ITEMS];
+static SimpleMenuSection s_menu_sections[1];
+static SimpleMenuItem s_menu_items[7];
 
 static NumberWindow *number_window;
+
+typedef struct ClaySettings {
+  char stop[32];
+  char desc[32];
+  char code[8];
+} ClaySettings;
+
+static ClaySettings stops[STOPS_NUMBER];
+
+static void load_config(){
+    for (int i = 0; i < STOPS_NUMBER; i++) {
+      persist_read_data(i+1, &stops[i], sizeof(ClaySettings));
+    }
+}
+
+static void save_config(){
+    for (int i = 0; i < STOPS_NUMBER; i++) {
+      persist_write_data(i+1, &stops[i], sizeof(ClaySettings));
+    }
+}
 
 static void s_select_callback(int index, void *ctx){}
 
@@ -29,8 +48,8 @@ static uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data
 
 static uint16_t menu_get_num_rows_callback(MenuLayer *menu_layer, uint16_t section_index, void *data) {
 
-        // Six menu items
-	return 6;
+        // Ten menu items
+	return STOPS_NUMBER+2;
 }
 
 static int16_t menu_get_header_height_callback(MenuLayer *menu_layer, uint16_t section_index, void *data) {
@@ -47,30 +66,23 @@ static void menu_draw_header_callback(GContext* ctx, const Layer *cell_layer, ui
 static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
 
         // Menu items
-	switch (cell_index->section) {
-		case 0:
 			switch (cell_index->row) {
-				case 0:
-					menu_cell_basic_draw(ctx, cell_layer, "Петлюри", "172 від центру", NULL);
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+          menu_cell_basic_draw(ctx, cell_layer, stops[cell_index->row].stop, stops[cell_index->row].desc, NULL);
 					break;
-				case 1:
-					menu_cell_basic_draw(ctx, cell_layer, "Петлюри", "173 до центру", NULL);
-					break;
-				case 2: 
-					menu_cell_basic_draw(ctx, cell_layer, "Dummy", "empty", NULL);
-					break;
-				case 3: 
-					menu_cell_basic_draw(ctx, cell_layer, "Dummy", "empty", NULL);
-					break;
-				case 4: 
-					menu_cell_basic_draw(ctx, cell_layer, "Dummy", "empty", NULL);
-					break;
-				case 5: 
+				case 7: 
 					menu_cell_basic_draw(ctx, cell_layer, "Номер зупинки", "Вибір за номером", NULL);
 					break;
+        case 8: 
+					menu_cell_basic_draw(ctx, cell_layer, "Зупинки поряд", "Пошук за геолокацією", NULL);
+					break;
 			}
-			break;
-	}
 }
 
 static void SendRequest(char *data) {
@@ -93,24 +105,18 @@ static void busstop_select_callback(struct NumberWindow *number_window, void *co
 static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	
         // Menu selection
-  text_layer_set_text(text_layer, "Loading...");
 	switch (cell_index->row) {
 		case 0:
-			SendRequest("172");
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+      text_layer_set_text(text_layer, "Loading...");
+			SendRequest(stops[cell_index->row].code);
 			break;
-		case 1:
-			SendRequest("173");
-			break;
-		case 2:
-      SendRequest("50");
-      break;
-		case 3:
-			SendRequest("pacman");
-			break;
-		case 4:
-			SendRequest("rainbow");
-			break;
-		case 5:
+		case 7:
       number_window = number_window_create("Номер зупинки", (NumberWindowCallbacks) { .selected = busstop_select_callback }, NULL);
     	number_window_set_min(number_window, 1);
 	    number_window_set_max(number_window, 500);
@@ -141,7 +147,7 @@ void DrawResults(int total) {
   Layer *window_layer = window_get_root_layer(s_window);
   GRect bounds = layer_get_frame(window_layer);
 
-  s_simple_menu_layer = simple_menu_layer_create(bounds, s_window, s_menu_sections, NUM_MENU_SECTIONS, NULL);
+  s_simple_menu_layer = simple_menu_layer_create(bounds, s_window, s_menu_sections, 1, NULL);
   
   window_set_window_handlers(s_window, (WindowHandlers) {
 		.load = s_window_load,
@@ -163,9 +169,6 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   Tuple *count = dict_find(iterator, MESSAGE_KEY_RESPONSE_COUNT);
   Tuple *total = dict_find(iterator, MESSAGE_KEY_TOTAL);
   
-  Tuple *bg_color = dict_find(iterator, MESSAGE_KEY_BackgroundColor);
-  Tuple *second_tick = dict_find(iterator, MESSAGE_KEY_SecondTick);
-
   if (busnum && busroute && count){
       snprintf(busnum_buf, sizeof(busnum_buf), "%s", busnum->value->cstring);
       snprintf(busroute_buf, sizeof(busroute_buf), "%s", busroute->value->cstring);
@@ -192,12 +195,21 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
         free(busroute_temp);
       }
   }
-  if (bg_color){
-    char bg_color_buf[32];
-    snprintf(bg_color_buf, sizeof(bg_color_buf), "%s", bg_color->value->cstring);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "BackgroundColor: %s", bg_color_buf);
-  }
   
+  for (int i = 0; i < STOPS_NUMBER; i++) {
+    Tuple *Stop = dict_find(iterator, MESSAGE_KEY_Stop+i);
+    Tuple *Desc = dict_find(iterator, MESSAGE_KEY_Desc+i);
+    Tuple *Code = dict_find(iterator, MESSAGE_KEY_Code+i);
+    if (Stop){
+      snprintf(stops[i].stop, sizeof(stops[i].stop), "%s", Stop->value->cstring);
+      snprintf(stops[i].desc, sizeof(stops[i].desc), "%s", Desc->value->cstring);
+      snprintf(stops[i].code, sizeof(stops[i].code), "%s", Code->value->cstring);
+    }
+    if (i == STOPS_NUMBER-1){
+      save_config();
+      menu_layer_reload_data(menu_layer);
+    }
+  }
 }
 
 static void window_load(Window *window) {
@@ -234,7 +246,7 @@ static void window_unload(Window *window) {
 }
 
 static void init(void) {
-	
+	load_config();
 	window = window_create();
 	app_message_register_inbox_received(inbox_received_callback);
 	app_message_open(app_message_inbox_size_maximum()/2, app_message_outbox_size_maximum()/4);
