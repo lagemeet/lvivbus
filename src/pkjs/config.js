@@ -195,6 +195,6 @@ module.exports = [
   
   {
     "type": "submit",
-    "defaultValue": "Save Settings"
+    "defaultValue": "Зберегти"
   }
 ];
