@@ -27,9 +27,9 @@ typedef struct ClaySettings {
 static ClaySettings stops[STOPS_NUMBER];
 
 static void load_config(){
-    for (int i = 0; i < STOPS_NUMBER; i++) {
-      persist_read_data(i+1, &stops[i], sizeof(ClaySettings));
-    }
+  for (int i = 0; i < STOPS_NUMBER; i++) {
+    persist_read_data(i+1, &stops[i], sizeof(ClaySettings));
+  }
 }
 
 static void save_config(){
@@ -232,9 +232,6 @@ static void window_load(Window *window) {
 	text_layer = text_layer_create(bounds);
 	text_layer_set_text_color(text_layer, GColorFromRGB(255, 255, 255));
 	text_layer_set_background_color(text_layer, GColorFromRGB(0, 0, 255));
-#ifdef PBL_COLOR
-	menu_layer_set_highlight_colors(menu_layer, GColorFromRGB(0, 255, 255), GColorFromRGB(0, 0, 0));
-#endif
 	menu_layer_set_click_config_onto_window(menu_layer, window);
 	text_layer_set_text(text_layer, "LvivBus");
 	layer_add_child(window_layer, menu_layer_get_layer(menu_layer));
