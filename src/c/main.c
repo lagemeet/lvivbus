@@ -11,10 +11,20 @@ static char busroute_buf[256];
 static char count_buf[8];
 static char total_buf[8];
 
+static char geoname_buf[64];
+static char geocode_buf[16];
+static char geocount_buf[8];
+static char geototal_buf[8];
+
 static Window *s_window;
 static SimpleMenuLayer *s_simple_menu_layer;
 static SimpleMenuSection s_menu_sections[1];
 static SimpleMenuItem s_menu_items[7];
+
+static Window *geo_window;
+static SimpleMenuLayer *geo_simple_menu_layer;
+static SimpleMenuSection geo_menu_sections[1];
+static SimpleMenuItem geo_menu_items[7];
 
 static NumberWindow *number_window;
 
@@ -98,6 +108,12 @@ static void SendRequest(char *data) {
 	app_message_outbox_send();
 }
 
+static void geo_select_callback(int index, void *ctx){
+  char geostop[sizeof(geocode_buf)];
+  snprintf(geostop, sizeof(geostop), "%s", geo_menu_items[index].title);
+  SendRequest(geostop);
+}
+
 static void busstop_select_callback(struct NumberWindow *number_window, void *context) {
 	int busstop_num = number_window_get_value(number_window);
   char busstop_num_temp[8];
@@ -123,19 +139,30 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 		case 7:
       number_window = number_window_create("Номер зупинки", (NumberWindowCallbacks) { .selected = busstop_select_callback }, NULL);
     	number_window_set_min(number_window, 1);
-	    number_window_set_max(number_window, 500);
+	    number_window_set_max(number_window, 900);
 	    number_window_set_step_size(number_window, 1);
       window_stack_push((Window*)number_window, true);
 			break;
+    case 8:
+      SendRequest("geo");
+      break;
 	}
 }
 
 static void s_window_load(Window *window) {
 }
 
+static void geo_window_load(Window *window) {
+}
+
 static void s_window_unload(Window *window) {
   simple_menu_layer_destroy(s_simple_menu_layer);
   number_window_destroy(number_window);
+  text_layer_set_text(text_layer, "LvivBus");
+}
+
+static void geo_window_unload(Window *window) {
+  simple_menu_layer_destroy(geo_simple_menu_layer);
   text_layer_set_text(text_layer, "LvivBus");
 }
 
@@ -160,6 +187,31 @@ void DrawResults(int total) {
   
   window_stack_push(s_window, "true");
   layer_add_child(window_layer, simple_menu_layer_get_layer(s_simple_menu_layer));
+  
+  vibes_short_pulse();
+}
+
+void GeoDrawResults(int total) {
+
+  geo_menu_sections[0] = (SimpleMenuSection) {
+    .num_items = total,
+    .items = geo_menu_items,
+  };
+  
+  geo_window = window_create();
+
+  Layer *window_layer = window_get_root_layer(geo_window);
+  GRect bounds = layer_get_frame(window_layer);
+
+  geo_simple_menu_layer = simple_menu_layer_create(bounds, geo_window, geo_menu_sections, 1, NULL);
+  
+  window_set_window_handlers(geo_window, (WindowHandlers) {
+		.load = geo_window_load,
+		.unload = geo_window_unload,
+	});
+  
+  window_stack_push(geo_window, "true");
+  layer_add_child(window_layer, simple_menu_layer_get_layer(geo_simple_menu_layer));
   
   vibes_short_pulse();
 }
@@ -213,6 +265,38 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
       save_config();
       menu_layer_reload_data(menu_layer);
     }
+  }
+  
+  Tuple *geoname = dict_find(iterator, MESSAGE_KEY_GEO_NAME);
+  Tuple *geocode = dict_find(iterator, MESSAGE_KEY_GEO_CODE);
+  Tuple *geocount = dict_find(iterator, MESSAGE_KEY_GEO_RESPONSE_COUNT);
+  Tuple *geototal = dict_find(iterator, MESSAGE_KEY_GEO_TOTAL);
+  
+  if (geoname && geocode && geocount){
+      snprintf(geoname_buf, sizeof(geoname_buf), "%s", geoname->value->cstring);
+      snprintf(geocode_buf, sizeof(geocode_buf), "%d", (int)geocode->value->int32);
+      snprintf(geocount_buf, sizeof(geocount_buf), "%d", (int)geocount->value->int32);
+      snprintf(geototal_buf, sizeof(geototal_buf), "%d", (int)geototal->value->int32);
+
+      int total_num = atoi(geototal_buf);
+  
+      int counter = atoi(geocount_buf);
+      char *geoname_temp = malloc(sizeof(geoname_buf));
+      strcpy(geoname_temp, geoname_buf);
+      char *geocode_temp = malloc(sizeof(geocode_buf));
+      strcpy(geocode_temp, geocode_buf);
+      
+      geo_menu_items[counter] = (SimpleMenuItem) {
+        .title = geocode_temp,
+        .subtitle = geoname_temp,
+        .callback = geo_select_callback,
+      };
+  
+      if (counter == total_num-1){
+        GeoDrawResults(total_num);
+        //free(busnum_temp);
+        //free(geoname_temp);
+      }
   }
 }
 

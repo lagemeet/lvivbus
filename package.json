@@ -1,5 +1,5 @@
 {
-    "author": "r.ghost.asp@gmail.com",
+    "author": "alivespirit",
     "dependencies": {
         "pebble-clay": "^1.0.3"
     },
@@ -20,7 +20,11 @@
             "TOTAL",
             "Stop[7]",
             "Desc[7]",
-            "Code[7]"
+            "Code[7]",
+            "GEO_NAME",
+            "GEO_CODE",
+            "GEO_RESPONSE_COUNT",
+            "GEO_TOTAL"
         ],
         "projectType": "native",
         "resources": {

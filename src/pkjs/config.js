@@ -67,7 +67,7 @@ module.exports = [
       {
         "type": "input",
         "messageKey": "Stop[2]",
-        "defaultValue": "Симоненка",
+        "defaultValue": "В.Великого",
         "label": "Назва"
       },
       {
@@ -94,19 +94,19 @@ module.exports = [
       {
         "type": "input",
         "messageKey": "Stop[3]",
-        "defaultValue": "Петлюри",
+        "defaultValue": "В.Великого",
         "label": "Назва"
       },
       {
         "type": "input",
         "messageKey": "Desc[3]",
-        "defaultValue": "від центру",
+        "defaultValue": "від Південного",
         "label": "Опис"
       },
       {
         "type": "input",
         "messageKey": "Code[3]",
-        "defaultValue": "172",
+        "defaultValue": "485",
         "label": "Код"
       }
     ]
@@ -121,19 +121,19 @@ module.exports = [
       {
         "type": "input",
         "messageKey": "Stop[4]",
-        "defaultValue": "Петлюри",
+        "defaultValue": "Перфецького",
         "label": "Назва"
       },
       {
         "type": "input",
         "messageKey": "Desc[4]",
-        "defaultValue": "від центру",
+        "defaultValue": "до центру",
         "label": "Опис"
       },
       {
         "type": "input",
         "messageKey": "Code[4]",
-        "defaultValue": "172",
+        "defaultValue": "534",
         "label": "Код"
       }
     ]
@@ -148,19 +148,19 @@ module.exports = [
       {
         "type": "input",
         "messageKey": "Stop[5]",
-        "defaultValue": "Петлюри",
+        "defaultValue": "Любінська",
         "label": "Назва"
       },
       {
         "type": "input",
         "messageKey": "Desc[5]",
-        "defaultValue": "від центру",
+        "defaultValue": "до центру",
         "label": "Опис"
       },
       {
         "type": "input",
         "messageKey": "Code[5]",
-        "defaultValue": "172",
+        "defaultValue": "156",
         "label": "Код"
       }
     ]
@@ -175,19 +175,19 @@ module.exports = [
       {
         "type": "input",
         "messageKey": "Stop[6]",
-        "defaultValue": "Петлюри",
+        "defaultValue": "Магнус",
         "label": "Назва"
       },
       {
         "type": "input",
         "messageKey": "Desc[6]",
-        "defaultValue": "від центру",
+        "defaultValue": "з центру",
         "label": "Опис"
       },
       {
         "type": "input",
         "messageKey": "Code[6]",
-        "defaultValue": "172",
+        "defaultValue": "13",
         "label": "Код"
       }
     ]
