@@ -24,7 +24,8 @@
             "GEO_NAME",
             "GEO_CODE",
             "GEO_RESPONSE_COUNT",
-            "GEO_TOTAL"
+            "GEO_TOTAL",
+            "Accuracy"
         ],
         "projectType": "native",
         "resources": {

@@ -7,6 +7,20 @@ module.exports = [
     "type": "section",
     "items": [
       {
+        "type": "slider",
+        "messageKey": "Accuracy",
+        "defaultValue": 500,
+        "min": 100,
+        "max": 1000,
+        "step": 100,
+        "label": "Радіус геолокації"
+      },
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
         "type": "heading",
         "defaultValue": "Зупинка №1"
       },

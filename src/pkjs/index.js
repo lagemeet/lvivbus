@@ -2,6 +2,15 @@ var Clay = require('pebble-clay');
 var clayConfig = require('./config');
 var clay = new Clay(clayConfig);
 
+var config = JSON.parse(localStorage.getItem('clay-settings'));
+if (config == null){
+  var accuracy = "500";
+} else {
+  var accuracy = config.Accuracy;
+}
+  
+
+
 var xhrRequest = function (url, type, callback) {
 
 	// Perform web request
@@ -51,7 +60,7 @@ function getWebdata(message) {
 function locSuccess(pos) {
   console.log('lat= ' + pos.coords.latitude + ' lon= ' + pos.coords.longitude);
   // Construct URL
-  var accuracy = "500";
+  
   var url = 'https://lad.lviv.ua/api/closest?longitude=' + pos.coords.longitude + '&latitude=' + pos.coords.latitude + '&accuracy=' + accuracy;
   //var url = 'https://lad.lviv.ua/api/closest?longitude=24.0439808&latitude=49.831745&accuracy=500';
   // Send web request
@@ -98,21 +107,13 @@ function getGeoStops() {
   navigator.geolocation.getCurrentPosition(locSuccess, locError, {enableHighAccuracy: true});
 }
 
-// Listen for when the watchface is opened
-Pebble.addEventListener('ready',
-        function(e) {
-                console.log("PebbleKit JS ready!");
-		//getWebdata('status');
-});
-
 // Listen for when an AppMessage is received
 Pebble.addEventListener('appmessage', function(e) {
-
 	var value = e.payload.REQUEST;
 	console.log("AppMessage " + value);
-	if (value != "geo"){
-    getWebdata(value);
-  } else {
+	if (value == "geo"){
     getGeoStops();
+  } else {
+    getWebdata(value);
   }
 });
