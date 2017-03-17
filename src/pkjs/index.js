@@ -52,8 +52,8 @@ function locSuccess(pos) {
   console.log('lat= ' + pos.coords.latitude + ' lon= ' + pos.coords.longitude);
   // Construct URL
   var accuracy = "500";
-  //var url = 'https://lad.lviv.ua/api/closest?longitude=' + pos.coords.longitude + '&latitude=' + pos.coords.latitude + '&accuracy=' + accuracy;
-  var url = 'https://lad.lviv.ua/api/closest?longitude=24.0439808&latitude=49.831745&accuracy=500';
+  var url = 'https://lad.lviv.ua/api/closest?longitude=' + pos.coords.longitude + '&latitude=' + pos.coords.latitude + '&accuracy=' + accuracy;
+  //var url = 'https://lad.lviv.ua/api/closest?longitude=24.0439808&latitude=49.831745&accuracy=500';
   // Send web request
 	console.log(url);
         xhrRequest(url, 'GET',
