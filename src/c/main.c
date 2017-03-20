@@ -1,37 +1,69 @@
 #include <pebble.h>
 
-#define KEY_REQUEST 0
-#define KEY_RESPONSE 1
-#define KEY_RESPONSE_TEXT 2
-
-#define NUM_MENU_SECTIONS 1
-#define NUM_FIRST_MENU_ITEMS 10
+#define STOPS_NUMBER 7
 
 static Window *window;
 static MenuLayer *menu_layer;
 static TextLayer *text_layer;
-static char response[256];
 
+static char busnum_buf[32];
+static char busroute_buf[256];
+static char count_buf[8];
+static char total_buf[8];
+
+static char geoname_buf[64];
+static char geocode_buf[16];
+static char geocount_buf[8];
+static char geototal_buf[8];
+
+static Window *s_window;
 static SimpleMenuLayer *s_simple_menu_layer;
-static SimpleMenuSection s_menu_sections[NUM_MENU_SECTIONS];
-static SimpleMenuItem s_first_menu_items[NUM_FIRST_MENU_ITEMS];
+static SimpleMenuSection s_menu_sections[1];
+static SimpleMenuItem s_menu_items[7];
 
-static void menu_selectt_callback(int index, void *ctx) {
-  s_first_menu_items[index].subtitle = "You've hit select here!";
-  layer_mark_dirty(simple_menu_layer_get_layer(s_simple_menu_layer));
+static Window *geo_window;
+static SimpleMenuLayer *geo_simple_menu_layer;
+static SimpleMenuSection geo_menu_sections[1];
+static SimpleMenuItem geo_menu_items[7];
 
+static NumberWindow *number_window;
+
+typedef struct ClaySettings {
+  char stop[32];
+  char desc[64];
+  char code[8];
+} ClaySettings;
+
+static ClaySettings stops[STOPS_NUMBER];
+
+static void load_config(){
+  for (int i = 0; i < STOPS_NUMBER; i++) {
+    persist_read_data(i+1, &stops[i], sizeof(ClaySettings));
+  }
+  if (strcmp(stops[0].stop, "") == 0){
+    snprintf(stops[0].stop, sizeof(stops[0].stop), "%s", "Немає зупинок");
+    snprintf(stops[0].desc, sizeof(stops[0].desc), "%s", "Потрібне налаштування");
+  }
 }
+
+static void save_config(){
+    for (int i = 0; i < STOPS_NUMBER; i++) {
+      persist_write_data(i+1, &stops[i], sizeof(ClaySettings));
+    }
+}
+
+static void s_select_callback(int index, void *ctx){}
 
 static uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data) {
 
-        // One menu section
+        // Two menu sections
 	return 1;
 }
 
 static uint16_t menu_get_num_rows_callback(MenuLayer *menu_layer, uint16_t section_index, void *data) {
 
-        // Six menu items
-	return 6;
+        // Ten menu items
+	return STOPS_NUMBER+2;
 }
 
 static int16_t menu_get_header_height_callback(MenuLayer *menu_layer, uint16_t section_index, void *data) {
@@ -48,30 +80,23 @@ static void menu_draw_header_callback(GContext* ctx, const Layer *cell_layer, ui
 static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
 
         // Menu items
-	switch (cell_index->section) {
-		case 0:
 			switch (cell_index->row) {
-				case 0:
-					menu_cell_basic_draw(ctx, cell_layer, "Petliury", "172", NULL);
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+          menu_cell_basic_draw(ctx, cell_layer, stops[cell_index->row].stop, stops[cell_index->row].desc, NULL);
 					break;
-				case 1:
-					menu_cell_basic_draw(ctx, cell_layer, "Off", "Turn all lights off", NULL);
+				case 7: 
+					menu_cell_basic_draw(ctx, cell_layer, "Номер зупинки", "Вибір за номером", NULL);
 					break;
-				case 2: 
-					menu_cell_basic_draw(ctx, cell_layer, "Weather", "Time/date/weather", NULL);
-					break;
-				case 3: 
-					menu_cell_basic_draw(ctx, cell_layer, "Pacman", "Pacman animation", NULL);
-					break;
-				case 4: 
-					menu_cell_basic_draw(ctx, cell_layer, "Rainbow", "Scrolling rainbow", NULL);
-					break;
-				case 5: 
-					menu_cell_basic_draw(ctx, cell_layer, "Snow", "Snow animation", NULL);
+        case 8: 
+					menu_cell_basic_draw(ctx, cell_layer, "Зупинки поряд", "Пошук за геолокацією", NULL);
 					break;
 			}
-			break;
-	}
 }
 
 static void SendRequest(char *data) {
@@ -79,80 +104,206 @@ static void SendRequest(char *data) {
         // Send request from watch to phone
 	DictionaryIterator *iter1;
 	app_message_outbox_begin(&iter1);
-	dict_write_cstring(iter1, KEY_REQUEST, data);
+	dict_write_cstring(iter1, MESSAGE_KEY_REQUEST, data);
 	app_message_outbox_send();
+}
+
+static void geo_select_callback(int index, void *ctx){
+  char geostop[sizeof(geocode_buf)];
+  snprintf(geostop, sizeof(geostop), "%s", geo_menu_items[index].title);
+  SendRequest(geostop);
+}
+
+static void busstop_select_callback(struct NumberWindow *number_window, void *context) {
+	int busstop_num = number_window_get_value(number_window);
+  char busstop_num_temp[8];
+  snprintf(busstop_num_temp, sizeof(busstop_num_temp), "%d", busstop_num);
+	window_stack_pop(true);
+  SendRequest(busstop_num_temp);
 }
 
 static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	
         // Menu selection
+  text_layer_set_text(text_layer, "Loading...");
 	switch (cell_index->row) {
 		case 0:
-			SendRequest("0172");
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+			SendRequest(stops[cell_index->row].code);
 			break;
-		case 1:
-			SendRequest("off");
+		case 7:
+      number_window = number_window_create("Номер зупинки", (NumberWindowCallbacks) { .selected = busstop_select_callback }, NULL);
+    	number_window_set_min(number_window, 1);
+	    number_window_set_max(number_window, 900);
+	    number_window_set_step_size(number_window, 1);
+      window_stack_push((Window*)number_window, true);
 			break;
-		case 2:
-			SendRequest("weather");
-			break;
-		case 3:
-			SendRequest("pacman");
-			break;
-		case 4:
-			SendRequest("rainbow");
-			break;
-		case 5:
-			SendRequest("snow");
-			break;
+    case 8:
+      SendRequest("geo");
+      break;
 	}
 }
 
+static void s_window_load(Window *window) {
+}
+
+static void geo_window_load(Window *window) {
+}
+
+static void s_window_unload(Window *window) {
+  simple_menu_layer_destroy(s_simple_menu_layer);
+  number_window_destroy(number_window);
+  text_layer_set_text(text_layer, "LvivBus");
+}
+
+static void geo_window_unload(Window *window) {
+  simple_menu_layer_destroy(geo_simple_menu_layer);
+  text_layer_set_text(text_layer, "LvivBus");
+}
+
+void DrawResults(int total) {
+
+  s_menu_sections[0] = (SimpleMenuSection) {
+    .num_items = total,
+    .items = s_menu_items,
+  };
+  
+  s_window = window_create();
+
+  Layer *window_layer = window_get_root_layer(s_window);
+  GRect bounds = layer_get_frame(window_layer);
+
+  s_simple_menu_layer = simple_menu_layer_create(bounds, s_window, s_menu_sections, 1, NULL);
+  
+  window_set_window_handlers(s_window, (WindowHandlers) {
+		.load = s_window_load,
+		.unload = s_window_unload,
+	});
+  
+  window_stack_push(s_window, "true");
+  layer_add_child(window_layer, simple_menu_layer_get_layer(s_simple_menu_layer));
+  
+  vibes_short_pulse();
+}
+
+void GeoDrawResults(int total) {
+
+  geo_menu_sections[0] = (SimpleMenuSection) {
+    .num_items = total,
+    .items = geo_menu_items,
+  };
+  
+  geo_window = window_create();
+
+  Layer *window_layer = window_get_root_layer(geo_window);
+  GRect bounds = layer_get_frame(window_layer);
+
+  geo_simple_menu_layer = simple_menu_layer_create(bounds, geo_window, geo_menu_sections, 1, NULL);
+  
+  window_set_window_handlers(geo_window, (WindowHandlers) {
+		.load = geo_window_load,
+		.unload = geo_window_unload,
+	});
+  
+  window_stack_push(geo_window, "true");
+  layer_add_child(window_layer, simple_menu_layer_get_layer(geo_simple_menu_layer));
+  
+  vibes_short_pulse();
+}
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
 
         // Receive response from phone to watch
-	Tuple *t = dict_read_first(iterator);
-  int num_a_items = 0;
-	while (t != NULL) {
-
-		switch(t->key) {
-			case KEY_RESPONSE:
-				snprintf(response, sizeof(response), "%s", t->value->cstring);
-				text_layer_set_text(text_layer, response);
-        s_first_menu_items[num_a_items++] = (SimpleMenuItem) {
-          .title = response,
-          .callback = menu_selectt_callback,
-        };
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "Received: %s", response);
-				break;
-      case KEY_RESPONSE_TEXT:
-      	snprintf(response, sizeof(response), "%s", t->value->cstring);
-				text_layer_set_text(text_layer, response);
-        APP_LOG(APP_LOG_LEVEL_DEBUG, "Received: %s", response);
-				break;
-		}
-		t = dict_read_next(iterator);
-	}
-
-  s_menu_sections[0] = (SimpleMenuSection) {
-    .num_items = NUM_FIRST_MENU_ITEMS,
-    .items = s_first_menu_items,
-  };
   
-  Layer *window_layer = window_get_root_layer(window);
-  GRect bounds = layer_get_frame(window_layer);
+  Tuple *busnum = dict_find(iterator, MESSAGE_KEY_RESPONSE);
+  Tuple *busroute = dict_find(iterator, MESSAGE_KEY_RESPONSE_TEXT);
+  Tuple *count = dict_find(iterator, MESSAGE_KEY_RESPONSE_COUNT);
+  Tuple *total = dict_find(iterator, MESSAGE_KEY_TOTAL);
+  
+  if (busnum && busroute && count){
+      snprintf(busnum_buf, sizeof(busnum_buf), "%s", busnum->value->cstring);
+      snprintf(busroute_buf, sizeof(busroute_buf), "%s", busroute->value->cstring);
+      snprintf(count_buf, sizeof(count_buf), "%d", (int)count->value->int32);
+      snprintf(total_buf, sizeof(total_buf), "%d", (int)total->value->int32);
 
-  s_simple_menu_layer = simple_menu_layer_create(bounds, window, s_menu_sections, NUM_MENU_SECTIONS, NULL);
+      int total_num = atoi(total_buf);
+  
+      int counter = atoi(count_buf);
+      char *busnum_temp = malloc(sizeof(busnum_buf));
+      strcpy(busnum_temp, busnum_buf);
+      char *busroute_temp = malloc(sizeof(busroute_buf));
+      strcpy(busroute_temp, busroute_buf);
+  
+      s_menu_items[counter] = (SimpleMenuItem) {
+        .title = busnum_temp,
+        .subtitle = busroute_temp,
+        .callback = s_select_callback,
+      };
+  
+      if (counter == total_num-1){
+        DrawResults(total_num);
+        //free(busnum_temp);
+        free(busroute_temp);
+      }
+  }
+  
+  for (int i = 0; i < STOPS_NUMBER; i++) {
+    Tuple *Stop = dict_find(iterator, MESSAGE_KEY_Stop+i);
+    Tuple *Desc = dict_find(iterator, MESSAGE_KEY_Desc+i);
+    Tuple *Code = dict_find(iterator, MESSAGE_KEY_Code+i);
+    if (Stop){
+      snprintf(stops[i].stop, sizeof(stops[i].stop), "%s", Stop->value->cstring);
+      snprintf(stops[i].desc, sizeof(stops[i].desc), "%s", Desc->value->cstring);
+      snprintf(stops[i].code, sizeof(stops[i].code), "%s", Code->value->cstring);
+    }
+    if (i == STOPS_NUMBER-1){
+      save_config();
+      menu_layer_reload_data(menu_layer);
+    }
+  }
+  
+  Tuple *geoname = dict_find(iterator, MESSAGE_KEY_GEO_NAME);
+  Tuple *geocode = dict_find(iterator, MESSAGE_KEY_GEO_CODE);
+  Tuple *geocount = dict_find(iterator, MESSAGE_KEY_GEO_RESPONSE_COUNT);
+  Tuple *geototal = dict_find(iterator, MESSAGE_KEY_GEO_TOTAL);
+  
+  if (geoname && geocode && geocount){
+      snprintf(geoname_buf, sizeof(geoname_buf), "%s", geoname->value->cstring);
+      snprintf(geocode_buf, sizeof(geocode_buf), "%d", (int)geocode->value->int32);
+      snprintf(geocount_buf, sizeof(geocount_buf), "%d", (int)geocount->value->int32);
+      snprintf(geototal_buf, sizeof(geototal_buf), "%d", (int)geototal->value->int32);
 
-  layer_add_child(window_layer, simple_menu_layer_get_layer(s_simple_menu_layer));
-
+      int total_num = atoi(geototal_buf);
+  
+      int counter = atoi(geocount_buf);
+      char *geoname_temp = malloc(sizeof(geoname_buf));
+      strcpy(geoname_temp, geoname_buf);
+      char *geocode_temp = malloc(sizeof(geocode_buf));
+      strcpy(geocode_temp, geocode_buf);
+      
+      geo_menu_items[counter] = (SimpleMenuItem) {
+        .title = geocode_temp,
+        .subtitle = geoname_temp,
+        .callback = geo_select_callback,
+      };
+  
+      if (counter == total_num-1){
+        GeoDrawResults(total_num);
+        //free(busnum_temp);
+        //free(geoname_temp);
+      }
+  }
 }
 
 static void window_load(Window *window) {
 	
 	Layer *window_layer = window_get_root_layer(window);
-	GRect bounds = layer_get_bounds(window_layer);
+	GRect bounds = layer_get_frame(window_layer);
 	bounds.origin.y += MENU_CELL_BASIC_HEADER_HEIGHT;
 	bounds.size.h -= MENU_CELL_BASIC_HEADER_HEIGHT;
 	menu_layer = menu_layer_create(bounds);
@@ -169,9 +320,6 @@ static void window_load(Window *window) {
 	text_layer = text_layer_create(bounds);
 	text_layer_set_text_color(text_layer, GColorFromRGB(255, 255, 255));
 	text_layer_set_background_color(text_layer, GColorFromRGB(0, 0, 255));
-#ifdef PBL_COLOR
-	menu_layer_set_highlight_colors(menu_layer, GColorFromRGB(0, 255, 255), GColorFromRGB(0, 0, 0));
-#endif
 	menu_layer_set_click_config_onto_window(menu_layer, window);
 	text_layer_set_text(text_layer, "LvivBus");
 	layer_add_child(window_layer, menu_layer_get_layer(menu_layer));
@@ -179,16 +327,14 @@ static void window_load(Window *window) {
 }
 
 static void window_unload(Window *window) {
-
 	menu_layer_destroy(menu_layer);
 }
 
 static void init(void) {
-	
-	response[0] = '\0';
+	load_config();
 	window = window_create();
 	app_message_register_inbox_received(inbox_received_callback);
-	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+	app_message_open(app_message_inbox_size_maximum()/2, app_message_outbox_size_maximum()/4);
 	window_set_window_handlers(window, (WindowHandlers) {
 		.load = window_load,
 		.unload = window_unload,
@@ -198,7 +344,7 @@ static void init(void) {
 }
 
 static void deinit(void) {
-	
+	window_destroy(s_window);
 	window_destroy(window);
 }
 
