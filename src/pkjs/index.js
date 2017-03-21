@@ -8,8 +8,16 @@ if (config == null){
 } else {
   var accuracy = config.Accuracy;
 }
-  
 
+function distance(lat1, lon1, lat2, lon2) {
+  var p = 0.017453292519943295;    // Math.PI / 180
+  var c = Math.cos;
+  var a = 0.5 - c((lat2 - lat1) * p)/2 + 
+          c(lat1 * p) * c(lat2 * p) * 
+          (1 - c((lon2 - lon1) * p))/2;
+
+  return Math.round(12742 * Math.asin(Math.sqrt(a)) * 1000); // 2 * R; R = 6371 km
+}
 
 var xhrRequest = function (url, type, callback) {
 
@@ -74,11 +82,15 @@ function locSuccess(pos) {
                     var name = json[i].name;
                     var code = json[i].code;
                     console.log(name + "   " + code);
+                    
+                    var dist = distance(json[i].latitude,json[i].longitude,pos.coords.latitude,pos.coords.longitude);
+                    //var dist = distance(json[i].latitude,json[i].longitude,"49.831745","24.0439808");
+                    console.log("distance: " + dist);
                   
 			              // Send response to Pebble
 			              var dictionary = { 
                       "GEO_NAME": name,
-                      "GEO_CODE": code,
+                      "GEO_CODE": code + ": за " + dist + "м.",
                       "GEO_RESPONSE_COUNT": i,
                       "GEO_TOTAL": total_items
                     };
@@ -114,6 +126,7 @@ Pebble.addEventListener('appmessage', function(e) {
 	if (value == "geo"){
     getGeoStops();
   } else {
+    value = value.split(':')[0]
     getWebdata(value);
   }
 });

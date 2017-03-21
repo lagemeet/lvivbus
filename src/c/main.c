@@ -12,7 +12,7 @@ static char count_buf[8];
 static char total_buf[8];
 
 static char geoname_buf[64];
-static char geocode_buf[16];
+static char geocode_buf[32];
 static char geocount_buf[8];
 static char geototal_buf[8];
 
@@ -274,7 +274,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   
   if (geoname && geocode && geocount){
       snprintf(geoname_buf, sizeof(geoname_buf), "%s", geoname->value->cstring);
-      snprintf(geocode_buf, sizeof(geocode_buf), "%d", (int)geocode->value->int32);
+      snprintf(geocode_buf, sizeof(geocode_buf), "%s", geocode->value->cstring);
       snprintf(geocount_buf, sizeof(geocount_buf), "%d", (int)geocount->value->int32);
       snprintf(geototal_buf, sizeof(geototal_buf), "%d", (int)geototal->value->int32);
 
