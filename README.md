@@ -7,7 +7,7 @@ Uses API of [lad.lviv.ua](https://lad.lviv.ua)
 ### Main menu window with favorite bus stops   
 ![menu_layer](/images/IMAG5661.jpg)
 ---
-### Bottom of main menu: select-by-number and geolocation   
+### Bottom of main menu: select-by-code and geolocation   
 ![menu_layer_bottom](/images/IMAG5662.jpg)
 ---
 ### List of buses and time to wait, subtitle shows end of the route for each bus   
