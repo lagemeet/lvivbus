@@ -17,5 +17,5 @@ Because of API responses in Ukrainian language all the titles and texts on watch
 ### Geolocation menu: code of bus stop, distance in meters, subtitle - name of bus stop   
 ![geo_menu_layer](/images/IMAG5663.jpg)
 ---
-### Configuration window on phone - radius of geolocation search and list of favorite bus stops   
+### Configuration page on phone - radius of geolocation search and list of favorite bus stops   
 ![config](/images/Screenshot_2017-03-20-14-55-41.png)
