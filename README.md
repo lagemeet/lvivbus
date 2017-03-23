@@ -1,7 +1,8 @@
 # LvivBus
 
-Pebble app to show info about public transport waiting time on different bus stops in Lviv, Ukraine.
-Uses API of [lad.lviv.ua](https://lad.lviv.ua)
+Pebble app to show info about public transport waiting time on different bus stops in Lviv, Ukraine.  
+Uses API of [lad.lviv.ua](https://lad.lviv.ua).  
+Because of API responses in Ukrainian language all the titles and texts on watch are also in Ukrainian.
 
 ## Screenshots:
 ### Main menu window with favorite bus stops   
