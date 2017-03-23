@@ -2,6 +2,7 @@ var Clay = require('pebble-clay');
 var clayConfig = require('./config');
 var clay = new Clay(clayConfig);
 
+//Setting default geolocation accuracy if config was not saved yet
 var config = JSON.parse(localStorage.getItem('clay-settings'));
 if (config == null){
   var accuracy = "500";
@@ -9,6 +10,7 @@ if (config == null){
   var accuracy = config.Accuracy;
 }
 
+//Calculate distance between geolocation and bus stop coordinates, in meters
 function distance(lat1, lon1, lat2, lon2) {
   var p = 0.017453292519943295;    // Math.PI / 180
   var c = Math.cos;
@@ -16,7 +18,7 @@ function distance(lat1, lon1, lat2, lon2) {
           c(lat1 * p) * c(lat2 * p) * 
           (1 - c((lon2 - lon1) * p))/2;
 
-  return Math.round(12742 * Math.asin(Math.sqrt(a)) * 1000); // 2 * R; R = 6371 km
+  return Math.round(12742 * Math.asin(Math.sqrt(a)) * 1000);
 }
 
 var xhrRequest = function (url, type, callback) {
@@ -30,6 +32,7 @@ var xhrRequest = function (url, type, callback) {
         xhr.send();
 };
 
+//Getting bus numbers and time to arrival from API and sending this to watch
 function getWebdata(message) {
   // Construct URL
   var url = "https://lad.lviv.ua/api/stops/" + message;
@@ -65,6 +68,7 @@ function getWebdata(message) {
         );
 }
 
+//Getting nearby stops with geolocation through API and sending this to watch
 function locSuccess(pos) {
   console.log('lat= ' + pos.coords.latitude + ' lon= ' + pos.coords.longitude);
   // Construct URL

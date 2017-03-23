@@ -6,21 +6,25 @@ static Window *window;
 static MenuLayer *menu_layer;
 static TextLayer *text_layer;
 
+//Buffers for received buses info
 static char busnum_buf[32];
 static char busroute_buf[256];
 static char count_buf[8];
 static char total_buf[8];
 
+//Buffers for received geolocation data
 static char geoname_buf[64];
 static char geocode_buf[32];
 static char geocount_buf[8];
 static char geototal_buf[8];
 
+//Simple menu layer vars for buses info
 static Window *s_window;
 static SimpleMenuLayer *s_simple_menu_layer;
 static SimpleMenuSection s_menu_sections[1];
 static SimpleMenuItem s_menu_items[7];
 
+//Simple menu layer vars for nearby stops info
 static Window *geo_window;
 static SimpleMenuLayer *geo_simple_menu_layer;
 static SimpleMenuSection geo_menu_sections[1];
@@ -28,6 +32,7 @@ static SimpleMenuItem geo_menu_items[7];
 
 static NumberWindow *number_window;
 
+//Vars for settings from phone
 typedef struct ClaySettings {
   char stop[32];
   char desc[64];
@@ -36,6 +41,7 @@ typedef struct ClaySettings {
 
 static ClaySettings stops[STOPS_NUMBER];
 
+//Loading config from persistant memory, if available
 static void load_config(){
   for (int i = 0; i < STOPS_NUMBER; i++) {
     persist_read_data(i+1, &stops[i], sizeof(ClaySettings));
@@ -46,6 +52,7 @@ static void load_config(){
   }
 }
 
+//Saving config to persistant memory
 static void save_config(){
     for (int i = 0; i < STOPS_NUMBER; i++) {
       persist_write_data(i+1, &stops[i], sizeof(ClaySettings));
@@ -62,7 +69,7 @@ static uint16_t menu_get_num_sections_callback(MenuLayer *menu_layer, void *data
 
 static uint16_t menu_get_num_rows_callback(MenuLayer *menu_layer, uint16_t section_index, void *data) {
 
-        // Ten menu items
+        // Nine menu items (7 favorite stops + select-by-number + geolocation)
 	return STOPS_NUMBER+2;
 }
 
@@ -77,6 +84,7 @@ static void menu_draw_header_callback(GContext* ctx, const Layer *cell_layer, ui
         // No header
 }
 
+//Filling main menu_layer with favorite stops from config + select-by-number + geolocation
 static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuIndex *cell_index, void *data) {
 
         // Menu items
@@ -99,22 +107,23 @@ static void menu_draw_row_callback(GContext* ctx, const Layer *cell_layer, MenuI
 			}
 }
 
+//Sending request to watch
 static void SendRequest(char *data) {
-
-        // Send request from watch to phone
 	DictionaryIterator *iter1;
 	app_message_outbox_begin(&iter1);
 	dict_write_cstring(iter1, MESSAGE_KEY_REQUEST, data);
 	app_message_outbox_send();
 }
 
+//Sending request to get buses info for stop chosen from geolocation (geo simple menu layer)
 static void geo_select_callback(int index, void *ctx){
   char geostop[sizeof(geocode_buf)];
   snprintf(geostop, sizeof(geostop), "%s", geo_menu_items[index].title);
   SendRequest(geostop);
 }
 
-static void busstop_select_callback(struct NumberWindow *number_window, void *context) {
+//Sending request to get buses info from NumberWindow
+static void number_select_callback(struct NumberWindow *number_window, void *context) {
 	int busstop_num = number_window_get_value(number_window);
   char busstop_num_temp[8];
   snprintf(busstop_num_temp, sizeof(busstop_num_temp), "%d", busstop_num);
@@ -122,6 +131,7 @@ static void busstop_select_callback(struct NumberWindow *number_window, void *co
   SendRequest(busstop_num_temp);
 }
 
+//Main menu_layer items selection
 static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *data) {
 	
         // Menu selection
@@ -137,7 +147,7 @@ static void menu_select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, v
 			SendRequest(stops[cell_index->row].code);
 			break;
 		case 7:
-      number_window = number_window_create("Номер зупинки", (NumberWindowCallbacks) { .selected = busstop_select_callback }, NULL);
+      number_window = number_window_create("Номер зупинки", (NumberWindowCallbacks) { .selected = number_select_callback }, NULL);
     	number_window_set_min(number_window, 1);
 	    number_window_set_max(number_window, 900);
 	    number_window_set_step_size(number_window, 1);
@@ -166,6 +176,7 @@ static void geo_window_unload(Window *window) {
   text_layer_set_text(text_layer, "LvivBus");
 }
 
+//Creating simple menu layer with buses info received from API
 void DrawResults(int total) {
 
   s_menu_sections[0] = (SimpleMenuSection) {
@@ -191,6 +202,7 @@ void DrawResults(int total) {
   vibes_short_pulse();
 }
 
+//Creating simple menu layer with buses info received from geolocation API
 void GeoDrawResults(int total) {
 
   geo_menu_sections[0] = (SimpleMenuSection) {
@@ -216,6 +228,7 @@ void GeoDrawResults(int total) {
   vibes_short_pulse();
 }
 
+//Receiving info from watch
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
 
         // Receive response from phone to watch
@@ -300,6 +313,7 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   }
 }
 
+//Creating main menu_layer
 static void window_load(Window *window) {
 	
 	Layer *window_layer = window_get_root_layer(window);
@@ -345,6 +359,7 @@ static void init(void) {
 
 static void deinit(void) {
 	window_destroy(s_window);
+  window_destroy(geo_window);
 	window_destroy(window);
 }
 
