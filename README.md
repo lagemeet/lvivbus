@@ -11,7 +11,7 @@ Because of API responses in Ukrainian language all the titles and texts on watch
 ### Bottom of main menu: select-by-code and geolocation   
 ![menu_layer_bottom](/images/IMAG5662.jpg)
 ---
-### List of buses and time to wait, subtitle shows end of the route for each bus   
+### List of buses and waiting time, subtitle shows end of the route for each bus   
 ![s_menu_layer](/images/IMAG5660.jpg)
 ---
 ### Geolocation menu: code of bus stop, distance in meters, subtitle - name of bus stop   
