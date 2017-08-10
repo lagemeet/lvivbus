@@ -3,7 +3,7 @@
 Pebble watchapp to show info about public transport waiting time on different bus stops in Lviv, Ukraine.  
 Uses API of [lad.lviv.ua](https://lad.lviv.ua).  
 Geolocation option (last item in menu) allows to get info about nearby bus stops.  
-Each predefined stop is configurable from phone, you can get stops numbers from [lad.lviv.ua](https://lad.lviv.ua).
+Each predefined stop is configurable from phone, you can get stops numbers from [lad.lviv.ua](https://lad.lviv.ua).  
 Because of API responses in Ukrainian language all the titles and texts on watch are also in Ukrainian.
 
 ## Screenshots:
