@@ -201,7 +201,7 @@ module.exports = [
       {
         "type": "input",
         "messageKey": "Code[6]",
-        "defaultValue": "13",
+        "defaultValue": "53",
         "label": "Код"
       }
     ]
