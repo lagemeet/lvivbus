@@ -29,6 +29,7 @@ var xhrRequest = function (url, type, callback) {
                 callback(this.responseText);
         };
         xhr.open(type, url);
+        xhr.setRequestHeader('referer', 'https://lad.lviv.ua/');
         xhr.send();
 };
 
