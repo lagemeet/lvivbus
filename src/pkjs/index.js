@@ -50,20 +50,20 @@ function getWebdata(message) {
                     var busroute = "-> " + bus.end_stop;
                     console.log(busnum + busroute);
                   
-			              // Send response to Pebble
-			              var dictionary = { 
+                   // Send response to Pebble
+                    var dictionary = { 
                       "RESPONSE": busnum,
                       "RESPONSE_TEXT": busroute,
                       "RESPONSE_COUNT": i,
                       "TOTAL": total_items
                     };
-			              console.log("Sending web response to Pebble " + i);
-			              Pebble.sendAppMessage(dictionary, function(e) {
-				              console.log("Web response sent to Pebble successfully!");
-			              },
-			              function(e) {
-				              console.log("Error sending web response to Pebble!");
-                    }
+                    console.log("Sending web response to Pebble " + i);
+                    Pebble.sendAppMessage(dictionary, function(e) {
+                    console.log("Web response sent to Pebble successfully!");
+                  },
+                  function(e) {
+	            console.log("Error sending web response to Pebble!");
+                  }
                   );}
                 }
         );
@@ -93,20 +93,19 @@ function locSuccess(pos) {
                     console.log("distance: " + dist);
                   
 			              // Send response to Pebble
-			              var dictionary = { 
+                    var dictionary = { 
                       "GEO_NAME": name,
                       "GEO_CODE": code + ": за " + dist + "м.",
                       "GEO_RESPONSE_COUNT": i,
                       "GEO_TOTAL": total_items
                     };
-			              console.log("Sending web response to Pebble " + i);
-			              Pebble.sendAppMessage(dictionary, function(e) {
-				              console.log("Web response sent to Pebble successfully!");
-			              },
-			              function(e) {
-				              console.log("Error sending web response to Pebble!");
-                    }
-                    
+                    console.log("Sending web response to Pebble " + i);
+                    Pebble.sendAppMessage(dictionary, function(e) {
+                    console.log("Web response sent to Pebble successfully!");
+                  },
+                  function(e) {
+	              console.log("Error sending web response to Pebble!");
+                  }
                   );}
                 }
         );
