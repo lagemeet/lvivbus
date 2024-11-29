@@ -29,14 +29,14 @@ var xhrRequest = function (url, type, callback) {
                 callback(this.responseText);
         };
         xhr.open(type, url);
-        xhr.setRequestHeader('referer', 'https://lad.lviv.ua/');
+        xhr.setRequestHeader('referer', 'https://api.lad.lviv.ua/');
         xhr.send();
 };
 
 //Getting bus numbers and time to arrival from API and sending this to watch
 function getWebdata(message) {
   // Construct URL
-  var url = "https://lad.lviv.ua/api/stops/" + message;
+  var url = "https://api.lad.lviv.ua/stops/" + message;
   // Send web request
 	console.log(url);
         xhrRequest(url, 'GET',
@@ -74,7 +74,7 @@ function locSuccess(pos) {
   console.log('lat= ' + pos.coords.latitude + ' lon= ' + pos.coords.longitude);
   // Construct URL
   
-  var url = 'https://lad.lviv.ua/api/closest?longitude=' + pos.coords.longitude + '&latitude=' + pos.coords.latitude + '&accuracy=' + accuracy;
+  var url = 'https://api.lad.lviv.ua/closest?longitude=' + pos.coords.longitude + '&latitude=' + pos.coords.latitude + '&accuracy=' + accuracy;
   //var url = 'https://lad.lviv.ua/api/closest?longitude=24.0439808&latitude=49.831745&accuracy=500';
   // Send web request
 	console.log(url);
