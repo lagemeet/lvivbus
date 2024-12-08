@@ -1,4 +1,5 @@
 # LvivBus
+FIXED VERSION THAT USE NEW DOMAIN OF LAD.LVIV.UA API
 
 Pebble watchapp to show info about public transport waiting time on different bus stops in Lviv, Ukraine.  
 Uses API of [lad.lviv.ua](https://lad.lviv.ua).  
